@@ -1,0 +1,2 @@
+require("./facebookStrategy");
+require("./googleStrategy");
