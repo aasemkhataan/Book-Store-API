@@ -5,17 +5,6 @@ const crypto = require("crypto");
 const { promisify } = require("util");
 const userSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      minlength: 2,
-      maxlength: 15,
-      validate: {
-        validator: function (value) {
-          return validator.isAlpha(value, "ar", { ignore: " " }) || validator.isAlpha(value, "en-US", { ignore: " " });
-        },
-        message: "First Name must contain only Arabic or English letters",
-      },
-    },
     firstName: {
       type: String,
       minlength: 2,
@@ -110,6 +99,11 @@ const userSchema = new mongoose.Schema(
     },
     passwordResetToken: String,
     passwordResetTokenExpiresIn: Date,
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -148,6 +142,7 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
   this.select("-__v");
   next();
 });
