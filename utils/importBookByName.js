@@ -1,4 +1,4 @@
-const axios = require('axios');
+const axios = require("axios");
 
 function scoreBookData(info) {
   let score = 0;
@@ -28,7 +28,7 @@ async function getTopScoredBook(title, author) {
   const topBook = books.sort((a, b) => b.score - a.score)[0];
 
   const bookData = topBook?.volumeInfo;
-  console.log('Book Data', bookData);
+  console.log("Book Data", bookData);
   const book = {
     title: bookData?.title,
     author: bookData.authors,
@@ -37,31 +37,11 @@ async function getTopScoredBook(title, author) {
     publishedDate: bookData.publishedDate,
     description: bookData.description,
     imageLinks: bookData.imageLinks?.thumbnail,
-    language: bookData.language || 'ar',
+    language: bookData.language || "ar",
     categories: bookData.categories?.[0].toLowerCase(),
-    ISBN_10: bookData.industryIdentifiers?.find((id) => id.type === 'ISBN_10')?.identifier,
-    ISBN_13: bookData.industryIdentifiers?.find((id) => id.type === 'ISBN_13')?.identifier
+    ISBN_10: bookData.industryIdentifiers?.find((id) => id.type === "ISBN_10")?.identifier,
+    ISBN_13: bookData.industryIdentifiers?.find((id) => id.type === "ISBN_13")?.identifier,
   };
   return book;
 }
 module.exports = getTopScoredBook;
-// const importData = async () => {
-//   await Book.create(bookArray)
-//     .then(() => console.log('Documents Successfully Added.'))
-//     .catch((err) => console.log(err));
-//   process.exit();
-// };
-// // content.map((book) => (book = book.volumeInfo));
-// const deleteDate = async () => {
-//   await Book.deleteMany()
-//     .then(() => console.log('Data Deleted Successfully.'))
-//     .catch((err) => console.log(err));
-
-//   process.exit();
-// };
-
-// if (process.argv[2] === '--import') {
-//   importData();
-// } else if (process.argv[2] == '--delete') {
-//   deleteDate();
-// }

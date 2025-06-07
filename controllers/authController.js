@@ -5,11 +5,14 @@ const jwt = require("jsonwebtoken");
 const { sendResponse } = require("./handlerFactory");
 const sendEmail = require("./../utils/sendEmail");
 const crypto = require("crypto");
+const { jwtVerify } = require("jose");
 
 const createToken = async (user, expiresIn) => {
-  jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn });
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn });
   user.lastLogin = Date.now();
   await user.save({ validateBeforeSave: false });
+
+  return token;
 };
 
 exports.googleAuth = catchAsync(async (req, res, next) => {
@@ -86,9 +89,7 @@ exports.login = catchAsync(async (req, res, next) => {
   const isCorrectPassword = await user.isCorrectPassword(password);
   if (!isCorrectPassword) return next(new AppError(401, process.env.NODE_ENV === "development" ? "password is incorrect" : "Email or Password is incorrect"));
 
-  const token = createToken(user, "7d");
-
-  await user.save({ validateBeforeSave: false });
+  const token = await createToken(user, "7d");
 
   sendResponse(200, user, res, token);
 });
@@ -137,6 +138,50 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordConfirm = passwordConfirm;
   user.passwordResetToken = undefined;
   user.passwordResetTokenExpiresIn = undefined;
+  await user.save();
+
+  const token = await createToken(user, "7d");
+
+  user.password = undefined;
+
+  sendResponse(200, user, res, token, "Password Updated Successfully!");
+});
+
+exports.protect = catchAsync(async (req, res, next) => {
+  const tokenHeader = req.headers.authorization?.startsWith("Bearer") ? req.headers.authorization.split(" ")[1] : null;
+  if (!tokenHeader) return next(new AppError(401, "please log in to perform this action."));
+
+  const jwtSecret = new TextEncoder().encode(process.env.JWT_SECRET);
+  const { payload: decoded } = await jwtVerify(tokenHeader, jwtSecret); // to not block the code with jwt.verify (no async version availble)
+
+  const user = await User.findById(decoded.id).select("+password");
+  if (!user) return next(new AppError(401, "User belonging to this token no longer exists."));
+
+  if (decoded.iat * 1000 < user.lastLogin) return next(new AppError("This Token is expired, please re-login"));
+
+  req.user = user;
+  next();
+});
+
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) return next(new AppError(403, `You do not have permission to perform this action`));
+
+    next();
+  };
+};
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  const { currentPassword, password, passwordConfirm } = req.body;
+  if (!currentPassword || !password || !passwordConfirm) return next(new AppError(400, "please Provide your Current and new Password and its Confirm"));
+
+  const user = req.user;
+  const isCorrect = await user.isCorrectPassword(currentPassword);
+
+  if (!isCorrect) return next(new AppError(401, "wrong password"));
+
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
   await user.save();
 
   const token = await createToken(user, "7d");

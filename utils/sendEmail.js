@@ -1,14 +1,7 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config({ path: "./config.env" });
 
-console.log("Host:", process.env.EMAIL_HOST);
-console.log("Port:", process.env.EMAIL_PORT);
-console.log("User:", process.env.EMAIL_USERNAME);
-console.log("Pass:", process.env.EMAIL_PASSWORD);
-console.log(typeof process.env.EMAIL_PORT);
-
 const sendEmail = async function (mailOptions) {
-  console.log(process.env.EMAIL_PORT);
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: Number(process.env.EMAIL_PORT),

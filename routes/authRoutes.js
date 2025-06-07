@@ -7,6 +7,7 @@ router.post("/signup", controllers.signup);
 router.post("/login", controllers.login);
 router.post("/forgotPassword", controllers.forgotPassword);
 router.patch("/resetPassword/:resetToken", controllers.resetPassword);
+router.patch("/updatePassword", controllers.protect, controllers.updatePassword);
 //
 // google Oauth
 

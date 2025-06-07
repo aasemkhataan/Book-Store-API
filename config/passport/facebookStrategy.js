@@ -2,7 +2,6 @@ const passport = require("passport");
 const FacebookStrategy = require("passport-facebook").Strategy;
 require("dotenv").config({ path: "./config.env" });
 
-console.log(process.env.FACEBOOK_CLIENT_ID);
 const facebookOptions = {
   clientID: process.env.FACEBOOK_CLIENT_ID,
   clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
@@ -12,7 +11,6 @@ const facebookOptions = {
 };
 
 const verifyCallback = async function (accessToken, refreshToken, profile, done) {
-  console.log(profile);
   const { id, email, first_name, last_name, birthday, gender, location, picture } = profile._json;
 
   const user = {
