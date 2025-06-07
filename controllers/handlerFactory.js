@@ -10,7 +10,7 @@ const sendResponse = function (statusCode, data, res, token, message) {
   if (message) response.message = message;
   if (Array.isArray(data)) response.results = data.length;
   if (token) response.token = token;
-  response.data = data;
+  if (data) response.data = data;
   res.status(statusCode).json(response);
 };
 

@@ -5,6 +5,8 @@ const passport = require("passport");
 
 router.post("/signup", controllers.signup);
 router.post("/login", controllers.login);
+router.post("/forgotPassword", controllers.forgotPassword);
+router.patch("/resetPassword/:resetToken", controllers.resetPassword);
 //
 // google Oauth
 

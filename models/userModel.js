@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-
+const { promisify } = require("util");
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -122,20 +122,11 @@ userSchema.virtual("fullName").get(function () {
   return fullName;
 });
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-
-  this.password = await bcrypt.hash(this.password, 12);
-  this.passwordConfirm = undefined;
-  this.passwordChangedAt = Date.now() - 1000;
-
-  next();
-});
-
 userSchema.methods.createResetToken = function () {
   const token = crypto.randomBytes(32).toString("hex");
   this.passwordResetToken = crypto.createHash("sha256").update(token).digest("hex");
   this.passwordResetTokenExpiresIn = Date.now() + 10 * 60 * 1000;
+
   return token;
 };
 
@@ -145,6 +136,24 @@ userSchema.methods.isCorrectPassword = async function (inputedPass) {
   }
   return bcrypt.compare(inputedPass, this.password);
 };
+
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  const hashedPass = await bcrypt.hash(this.password, 12);
+
+  console.log("hashedPass", hashedPass);
+
+  this.password = hashedPass;
+  this.passwordConfirm = undefined;
+  this.passwordChangedAt = Date.now() - 1000;
+
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+  this.select("-__v");
+  next();
+});
 
 const User = mongoose.model("User", userSchema);
 

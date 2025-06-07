@@ -3,6 +3,8 @@ const catchAsync = require("../utils/catchAsync");
 const User = require("./../models/userModel");
 const jwt = require("jsonwebtoken");
 const { sendResponse } = require("./handlerFactory");
+const sendEmail = require("./../utils/sendEmail");
+const crypto = require("crypto");
 
 const createToken = async (user, expiresIn) => {
   jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn });
@@ -91,4 +93,55 @@ exports.login = catchAsync(async (req, res, next) => {
   sendResponse(200, user, res, token);
 });
 
-// exports.forgotPassword =
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return next(new AppError(400, "This Email is not Belonging to any User."));
+
+  const token = user.createResetToken();
+  await user.save({ validateBeforeSave: false });
+
+  const resetURL = `${req.protocol}://${req.get("host")}/api/v1/auth/resetPassword/${token}`;
+  const message = `forgot your password? submit a POST request to this url: \n ${resetURL}\nif you didn't forget your password please ignore this email`;
+
+  try {
+    await sendEmail({
+      email,
+      message,
+      subject: "resetting password",
+    });
+  } catch (error) {
+    console.log(error);
+    user.passwordResetToken = undefined;
+    user.passwordResetTokenExpiresIn = undefined;
+    await user.save({ validateBeforeSave: false });
+    return next(new AppError(500, "something went wrong, please try again later"));
+  }
+
+  sendResponse(200, null, res, null, "reset token send to your email");
+});
+
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  const { password, passwordConfirm } = req.body;
+
+  if (!password || !passwordConfirm) return next(new AppError(400, "please provide both password and confirm"));
+
+  const hashedToken = crypto.createHash("sha256").update(req.params.resetToken).digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetTokenExpiresIn: { $gt: Date.now() },
+  });
+  if (!user) return next(new AppError(400, "invalid token or expired one."));
+
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetTokenExpiresIn = undefined;
+  await user.save();
+
+  const token = await createToken(user, "7d");
+
+  user.password = undefined;
+
+  sendResponse(200, user, res, token, "Password Updated Successfully!");
+});
