@@ -16,25 +16,3 @@ exports.deleteItem = factory.deleteOne(CartItem);
 exports.deleteAllItems = factory.deleteAll(CartItem);
 exports.createItem = factory.createOne(CartItem, { cartItemLogic: true });
 exports.updateItem = factory.updateOne(CartItem);
-// exports.addItem = catchAsync(async (req, res, next) => {
-//   const { book: bookId } = req.body;
-
-//   if (!bookId) return next(new AppError(400, "please provide book id"));
-//   const user = await User.findById(req.user._id);
-
-//   let found = false;
-
-//   for (let item of user.cart) {
-//     if (item.book && item.book.equals(bookId)) {
-//       item.quantity++;
-//       found = true;
-//       break;
-//     }
-//   }
-
-//   if (!found) user.cart.push({ book: bookId });
-
-//   await user.save({ validateBeforeSave: false });
-
-//   sendResponse(200, { cart: user.cart }, res);
-// });
