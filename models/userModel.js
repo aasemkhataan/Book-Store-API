@@ -89,6 +89,7 @@ const userSchema = new mongoose.Schema(
     photo: {
       type: String,
     },
+
     passwordChangedAt: {
       type: Date,
     },
@@ -114,6 +115,22 @@ const userSchema = new mongoose.Schema(
 userSchema.virtual("fullName").get(function () {
   const fullName = this.firstName + " " + this.lastName;
   return fullName;
+});
+userSchema.virtual("cartItems", {
+  ref: "CartItem",
+  foreignField: "user",
+  localField: "_id",
+});
+
+userSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "cartItems",
+    populate: {
+      path: "book",
+      select: "title price",
+    },
+  });
+  next();
 });
 
 userSchema.methods.createResetToken = function () {
