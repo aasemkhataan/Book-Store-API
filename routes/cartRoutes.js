@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const controllers = require("../controllers/cartController");
-const { protect } = require("../controllers/authController");
+const { protect, restrictTo } = require("../controllers/authController");
 
 router.use(protect);
 

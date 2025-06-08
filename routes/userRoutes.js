@@ -1,13 +1,11 @@
 const { protect, restrictTo } = require("../controllers/authController");
 const controllers = require("./../controllers/userController");
 const router = require("express").Router();
-const cartRouter = require("./userCartRoutes");
+const cartRouter = require("./cartRoutes");
 
 router.use("/:userId/cart", cartRouter);
 router.use(protect);
 
-router.route("/me").get(controllers.getMe, controllers.getUser).delete(controllers.deleteMe);
-router.route("/").get(controllers.getAllUsers).delete(controllers.deleteAllUsers);
-router.route("/:id").get(controllers.getUser).patch(controllers.updateUser).delete(controllers.deleteUser);
+router.route("/me").get(controllers.getMe, controllers.getUser).patch(controllers.updateMe).delete(controllers.deleteMe);
 
 module.exports = router;

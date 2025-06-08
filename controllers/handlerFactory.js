@@ -3,6 +3,7 @@ const AppError = require("./../utils/appError");
 const APIFeatures = require("./../utils/apiFeatures");
 const CartItem = require("../models/cartModel");
 const ensureEnoughStock = require("./../utils/ensureEnoughStock");
+const mongoose = require("mongoose");
 
 const sendResponse = function (statusCode, data, res, token, message) {
   const response = {
@@ -20,7 +21,9 @@ exports.sendResponse = sendResponse;
 
 exports.getAll = (Model, options) =>
   catchAsync(async (req, res, next) => {
-    const filter = options?.filterByUser ? { user: req.user.id } : {};
+    let filter = {};
+    if (options?.filerByUser) filter = { user: req.user.id };
+    if (req?.params?.bookId) filter = { book: req.params.bookId };
 
     let features = new APIFeatures(Model.find(filter), req.query).filter().sort().paginate().limitFields();
     const docs = await features.query;
@@ -133,12 +136,18 @@ exports.deleteOne = (Model, options) =>
 exports.deleteAll = (Model, options) =>
   catchAsync(async (req, res, next) => {
     if (options?.cartLogic) {
-      const cart = await Model.find({ user: req.user.id });
+      const cart = await Model.findOne({ user: req.user.id });
       if (!cart) return next(new AppError(404, "Cart not found"));
+
       await Model.findByIdAndDelete(cart._id);
-      sendResponse(204, null, res);
-    } else {
-      await Model.deleteMany();
-      sendResponse(204, null, res);
+      return sendResponse(204, null, res, "Cart deleted successfully");
     }
+
+    if (req.params.bookId) {
+      await mongoose.model("Review").deleteMany({ book: req.params.bookId });
+      return sendResponse(204, null, res, "All reviews for this book deleted");
+    }
+
+    await Model.deleteMany();
+    sendResponse(204, null, res, `${Model.modelName}s deleted successfully`);
   });

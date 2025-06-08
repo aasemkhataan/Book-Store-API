@@ -14,6 +14,7 @@ exports.insertBookId = (req, res, next) => {
 exports.adminGetAllCarts = factory.getAll(Cart);
 exports.adminGetUserCart = factory.getOne(Cart);
 exports.adminDeleteAllCarts = factory.deleteAll(Cart);
+exports.adminDeleteCart = factory.deleteOne(Cart);
 //
 
 exports.getMyCart = factory.getAll(Cart, { filterByUser: true });
