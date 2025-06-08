@@ -190,3 +190,13 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 
   sendResponse(200, user, res, token, "Password Updated Successfully!");
 });
+
+exports.checkOwnership = (Model) =>
+  catchAsync(async (req, res, next) => {
+    const docToUpdate = await Model.findById(req.params.id);
+
+    if (!docToUpdate) return next(new AppError(404, `no ${Model.modelName} found with this ID: ${req.params.id}`));
+
+    if (docToUpdate.user.toString() !== req.user.id) return next(new AppError(403, "You do not have permission to modify this"));
+    next();
+  });

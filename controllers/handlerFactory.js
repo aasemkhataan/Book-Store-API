@@ -28,10 +28,8 @@ exports.getAll = (Model) =>
 exports.getOne = (Model, populateOptions) =>
   catchAsync(async (req, res, next) => {
     const doc = await Model.findById(req.params.id).populate(populateOptions);
-    doc.cart = undefined;
-    await doc.save({ validateBeforeSave: false });
 
-    if (!doc) return next(new AppError(400, `no ${Model.modelName} found with this ID.`));
+    if (!doc) return next(new AppError(404, `no ${Model.modelName} found with this ID.`));
 
     sendResponse(200, doc, res);
   });
@@ -42,7 +40,7 @@ exports.createOne = (Model, options) =>
     let message;
     let statusCode = 201;
 
-    if (options.cartItemLogic) {
+    if (options?.cartItemLogic) {
       const { user, book } = req.body;
 
       doc = await CartItem.findOne({ user, book });
@@ -64,14 +62,13 @@ exports.createOne = (Model, options) =>
     sendResponse(statusCode, doc, res, `${Model.modelName} ${message}`);
   });
 
-exports.updateOne = (Model) =>
+exports.updateOne = (Model, options) =>
   catchAsync(async (req, res, next) => {
     const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
       runValidators: true,
       new: true,
     });
-
-    if (!doc) return next(new AppError(400, `no ${Model.modelName} found with this ID: ${req.params.id}`));
+    if (!doc) return next(new AppError(404, `No ${Model.modelName} found with this ID.`));
 
     sendResponse(200, doc, res, `${Model.modelName} updated successfully!`);
   });
@@ -80,7 +77,7 @@ exports.deleteOne = (Model) =>
   catchAsync(async (req, res, next) => {
     const doc = await Model.findByIdAndDelete(req.params.id);
 
-    if (!doc) return next(new AppError(400, `no ${Model.modelName} found with this ID.`));
+    if (!doc) return next(new AppError(404, `no ${Model.modelName} found with this ID.`));
 
     sendResponse(204, null, res);
   });

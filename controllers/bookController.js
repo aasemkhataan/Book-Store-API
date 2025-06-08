@@ -4,6 +4,7 @@ const factory = require("./handlerFactory");
 const getBook = require("./../utils/importBookByName");
 const AppError = require("./../utils/appError");
 const { sendResponse } = require("./handlerFactory");
+const { populate } = require("../models/reviewModel");
 
 exports.fetchBookData = catchAsync(async (req, res, next) => {
   const { title } = req.body;
@@ -21,7 +22,7 @@ exports.fetchBookData = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllBooks = factory.getAll(Book);
-exports.getBook = factory.getOne(Book);
+exports.getBook = factory.getOne(Book, { path: "reviews" });
 exports.createBook = factory.createOne(Book);
 exports.updateBook = factory.updateOne(Book);
 exports.deleteBook = factory.deleteOne(Book);
