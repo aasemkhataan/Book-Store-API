@@ -1,18 +1,23 @@
-const User = require("./../models/userModel");
-const catchAsync = require("./../utils/catchAsync");
-const AppError = require("./../utils/appError");
-const { sendResponse } = require("./handlerFactory");
 const factory = require("./handlerFactory");
-const CartItem = require("./../models/cartItemModel");
+const Cart = require("./../models/cartModel");
 
-exports.insertBodyUserId = (req, res, next) => {
-  req.body.user = req.user.id;
+exports.insertUserId = (req, res, next) => {
+  req.body.user = req.params.userId || req.user.id;
   next();
 };
 
-exports.getAllItems = factory.getAll(CartItem);
-exports.getItem = factory.getOne(CartItem);
-exports.deleteItem = factory.deleteOne(CartItem);
-exports.deleteAllItems = factory.deleteAll(CartItem);
-exports.createItem = factory.createOne(CartItem, { cartItemLogic: true });
-exports.updateItem = factory.updateOne(CartItem);
+exports.insertBookId = (req, res, next) => {
+  req.body.book = req.params.bookId || req.body.book;
+  next();
+};
+
+exports.adminGetAllCarts = factory.getAll(Cart);
+exports.adminGetUserCart = factory.getOne(Cart);
+exports.adminDeleteAllCarts = factory.deleteAll(Cart);
+//
+
+exports.getMyCart = factory.getAll(Cart, { filterByUser: true });
+exports.addToCart = factory.createOne(Cart, { cartLogic: true });
+exports.updateCartItem = factory.updateOne(Cart, { cartLogic: true });
+exports.deleteCartItem = factory.deleteOne(Cart, { cartLogic: true });
+(exports.emptyCart = factory.deleteAll(Cart)), { cartLogic: true };

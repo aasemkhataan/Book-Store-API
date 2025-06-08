@@ -1,8 +1,10 @@
-const express = require("express");
+const router = require("express").Router();
 const controllers = require("../controllers/bookController");
 const reviewRouter = require("./reviewRoutes");
-const router = express.Router();
 
+const cartRouter = require("./userCartRoutes");
+
+router.use("/:bookId/addToCart", cartRouter);
 router.use("/:bookId/reviews/", reviewRouter);
 
 router.post("/fetchBookData", controllers.fetchBookData);

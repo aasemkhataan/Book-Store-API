@@ -13,7 +13,8 @@ app.use(morgan("dev"));
 app.use("/api/v1/books", require("./routes/bookRoutes"));
 app.use("/api/v1/auth", require("./routes/authRoutes"));
 app.use("/api/v1/users", require("./routes/userRoutes"));
-app.use("/api/v1/cart", require("./routes/cartRoutes"));
+// app.use("/api/v1/admin/carts", require("./routes/adminCartRoutes"));
+app.use("/api/v1/my-cart", require("./routes/userCartRoutes"));
 app.use("/api/v1/reviews", require("./routes/reviewRoutes"));
 
 app.use("*", (req, res, next) => {

@@ -116,17 +116,17 @@ userSchema.virtual("fullName").get(function () {
   const fullName = this.firstName + " " + this.lastName;
   return fullName;
 });
-userSchema.virtual("cartItems", {
-  ref: "CartItem",
+userSchema.virtual("cart", {
+  ref: "Cart",
   foreignField: "user",
   localField: "_id",
 });
 
 userSchema.pre(/^find/, function (next) {
   this.populate({
-    path: "cartItems",
+    path: "cart",
     populate: {
-      path: "book",
+      path: "items.book",
       select: "title price",
     },
   });
