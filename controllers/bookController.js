@@ -7,18 +7,18 @@ const { sendResponse } = require("./handlerFactory");
 const { populate } = require("../models/reviewModel");
 
 exports.fetchBookData = catchAsync(async (req, res, next) => {
-  const { title } = req.body;
+  const { title, price, stock } = req.body;
 
   if (!title) {
     return next(new AppError(400, "Please provide at least book title"));
   }
 
-  const books = await getBook(title);
+  const book = await getBook(title);
 
-  if (!books) {
+  if (!book) {
     return next(new AppError(404, "Book not found from external API"));
   }
-  sendResponse(200, books, res);
+  sendResponse(200, book, res);
 });
 
 exports.getAllBooks = factory.getAll(Book);

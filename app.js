@@ -2,12 +2,15 @@ const express = require("express");
 const app = express();
 const AppError = require("./utils/appError");
 const morgan = require("morgan");
-const authRouter = require("./routes/authRoutes");
+const applySecurity = require("./utils/security");
 const passport = require("passport");
+const { softJWTCheck } = require("./controllers/authController");
 require("./config/passport");
 //
 
 app.use(express.json({ limit: "10kb" }));
+
+applySecurity(app);
 app.use(passport.initialize());
 app.use(morgan("dev"));
 app.use("/api/v1/books", require("./routes/bookRoutes"));

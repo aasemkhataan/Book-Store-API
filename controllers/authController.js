@@ -200,3 +200,17 @@ exports.checkOwnership = (Model) =>
     if (docToUpdate.user.toString() !== req.user.id) return next(new AppError(403, "You do not have permission to modify this"));
     next();
   });
+
+exports.softJWTCheck = catchAsync(async (req, res, next) => {
+  const token = req.headers.authorization ? req.headers.authorization.split(" ")[1] : null;
+
+  if (!token) return next();
+
+  const jwtSecret = new TextEncoder().encode(process.env.JWT_SECRET);
+  const { payload: decoded } = await jwtVerify(token, jwtSecret);
+
+  const user = await User.findById(decoded.id);
+  if (!user) return next(new AppError(401, "User belonging to this token no longer exists."));
+  req.user = user;
+  next();
+});
