@@ -7,7 +7,7 @@ const ensureEnoughStock = async (bookId, desiredQuantity) => {
 
   if (book.stock < desiredQuantity) throw new AppError(400, `Only ${book.stock} copies available`);
 
-  return book;
+  return true;
 };
 
 module.exports = ensureEnoughStock;
