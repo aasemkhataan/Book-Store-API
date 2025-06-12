@@ -119,6 +119,8 @@ exports.updateOne = (Model, options) =>
       await order.save();
       return sendResponse(200, order, res, {}, `${Model.modelName} updated successfully!`);
     }
+
+    if (req.file) req.body.coverImage = req.file.filename;
     const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
       runValidators: true,
       new: true,

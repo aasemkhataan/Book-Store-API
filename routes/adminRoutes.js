@@ -7,12 +7,14 @@ const userController = require("./../controllers/userController");
 const cartController = require("./../controllers/cartController");
 const reviewController = require("./../controllers/reviewController");
 const orderController = require("./../controllers/orderController");
+const upload = require("./../utils/upload-photos")("book");
+
 router.use(protect, restrictTo("admin"));
 
 // ===== Books =====
 router.route("/books").get(bookController.getAllBooks).post(bookController.createBook).delete(bookController.deleteAllBooks);
 
-router.route("/books/:id").get(bookController.getBook).patch(bookController.updateBook).delete(bookController.deleteBook);
+router.route("/books/:id").get(bookController.getBook).patch(upload.single("coverImage"), bookController.updateBook).delete(bookController.deleteBook);
 
 router.post("/fetchBookData", bookController.fetchBookData);
 
@@ -35,5 +37,8 @@ router.route("/reviews/:id").get(reviewController.getReview).patch(reviewControl
 // ===== Orders =====
 
 router.route("/orders").get(orderController.getAllOrders).delete(orderController.deleteAllOrders);
-router.route("/orders/:id").patch(orderController.updateOrderStatus).delete(orderController.deleteOrder);
+router.route("/orders/:id").get(orderController.getOrder).patch(orderController.updateOrderStatus).delete(orderController.deleteOrder);
+router.patch("/orders/:id/mark-delivered", orderController.markAsDelivered);
+router.patch("/orders/:id/mark-paid", orderController.markAsPaid);
+
 module.exports = router;

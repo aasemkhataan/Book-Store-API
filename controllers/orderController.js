@@ -7,7 +7,7 @@ const factory = require("./handlerFactory");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.getMyOrders = factory.getAll(Order, { filterByUser: true });
-exports.getOrder = factory.getOne(Order);
+exports.getOrder = factory.getOne(Order, { path: "items.book", select: "title priceAtPurchase quantity" });
 exports.updateMyOrder = factory.updateOne(Order);
 
 exports.createOrder = catchAsync(async (req, res, next) => {
@@ -45,35 +45,35 @@ exports.cancelMyOrder = catchAsync(async (req, res, next) => {
 
 exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.orderId).populate("items.book");
-  if (!order) return next(new AppError(404, "Order Not found."));
 
+  if (order.paidAt) return next(new AppError(400, "This Order is Paid Already!"));
   if (order.status === "cancelled") return next(new AppError(400, "This order has been cancelled and cannot be paid"));
-  if (order.paidAt) return next(new AppError(400, "This order is already paid."));
 
   const line_items = order.items.map((item) => ({
     price_data: {
-      currency: "usd",
+      currency: "egp",
       unit_amount: Math.round(item.priceAtPurchase * 100),
       product_data: {
         name: item.book.title,
         description: item.book.author.join(", "),
       },
+      quantity: item.quantity,
     },
-    quantity: item.quantity,
   }));
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     mode: "payment",
     customer_email: req.user.email,
-    success_url: `${req.protocol}://${req.get("host")}/api/v1/orders/success?orderId=${order._id}`,
-    cancel_url: `${req.protocol}://${req.get("host")}/api/v1/orders/cancel`,
     client_reference_id: order._id.toString(),
+    success_url: `${req.protocol}://${req.get("host")}/api/v1/success?orderId=${order._id}`,
+    cancel_url: `${req.protocol}://${req.get("host")}/api/v1/cancel`,
     line_items,
   });
 
   sendResponse(201, session, res);
 });
+
 exports.confirmPayment = catchAsync(async (req, res, next) => {
   const { orderId } = req.query;
   if (!orderId) return next(new AppError(400, "Missing orderId"));
@@ -109,10 +109,28 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
 exports.deleteOrder = factory.deleteOne(Order);
 exports.deleteAllOrders = factory.deleteAll(Order);
 
-// exports.markAsPaid = catchAsync(async (req, res, next) => {
-//   const order = await Order.findOneAndUpdate(req.params.id, { status });
-// });
+exports.markAsPaid = catchAsync(async (req, res, next) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) return next(new AppError(404, "Order Not Found!"));
 
-// exports.markAsDelivered = catchAsync(async (req, res, next) => {
-//   const order = await Order.findOneAndUpdate(req.params.id, { status });
-// });
+  if (order.paidAt) return next(new AppError(400, "This Order is Paid Already!"));
+
+  order.status = "processing";
+  order.paidAt = Date.now();
+  await order.save({ validateBeforeSave: false });
+
+  sendResponse(200, order, res);
+});
+
+exports.markAsDelivered = catchAsync(async (req, res, next) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) return next(new AppError(404, "Order Not Found!"));
+
+  if (order.deliveredAt) return next(new AppError(400, "This Order is Delivered Already!"));
+
+  order.status = "delivered";
+  order.deliveredAt = Date.now();
+  await order.save({ validateBeforeSave: false });
+
+  sendResponse(200, order, res);
+});

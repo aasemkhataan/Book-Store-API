@@ -34,7 +34,7 @@ async function getTopScoredBook(title, author) {
     publisher: bookData.publisher,
     publishedDate: bookData.publishedDate,
     description: bookData.description,
-    imageLinks: bookData.imageLinks?.thumbnail,
+    coverImage: bookData.imageLinks?.thumbnail,
     language: bookData.language || "ar",
     categories: bookData.categories?.[0].toLowerCase(),
     ISBN_10: bookData.industryIdentifiers?.find((id) => id.type === "ISBN_10")?.identifier,
