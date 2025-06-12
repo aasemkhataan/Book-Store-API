@@ -23,12 +23,12 @@ exports.getAll = (Model, options) =>
   catchAsync(async (req, res, next) => {
     let filter = {};
     if (options?.filerByUser) filter = { user: req.user.id };
-    if (req?.params?.bookId) filter = { book: req.params.bookId };
+    if (req.params?.bookId) filter = { book: req.params.bookId };
 
     let features = new APIFeatures(Model.find(filter), req.query).filter().sort().paginate().limitFields();
     const docs = await features.query;
 
-    sendResponse(200, docs, res);
+    sendResponse(200, docs, res, {});
   });
 
 exports.getOne = (Model, populateOptions) =>
@@ -37,7 +37,7 @@ exports.getOne = (Model, populateOptions) =>
 
     if (!doc) return next(new AppError(404, `no ${Model.modelName} found with this ID.`));
 
-    sendResponse(200, doc, res);
+    sendResponse(200, doc, res, {});
   });
 
 exports.createOne = (Model, options) =>
@@ -77,7 +77,7 @@ exports.createOne = (Model, options) =>
       message = "created successfully!";
     }
 
-    sendResponse(statusCode, doc, res, `${Model.modelName} ${message}`);
+    sendResponse(statusCode, doc, res, {}, `${Model.modelName} ${message}`);
   });
 
 exports.updateOne = (Model, options) =>
@@ -99,16 +99,33 @@ exports.updateOne = (Model, options) =>
 
       item.quantity = req.body.quantity;
       await cart.save();
-      return sendResponse(200, cart, res, `Cart item updated successfully`);
+      return sendResponse(200, cart, res, {}, `Cart item updated successfully`);
     }
 
+    if (options?.orderLogic) {
+      const order = await Model.findOne({ user: req.user.id, _id: req.params.id });
+      if (!order) return next(new AppError(404, "order not found"));
+
+      if (order.status !== "pending") return next(new AppError(400, "Can't update order after it is processed"));
+
+      if (!req.body.shippingAddress && !req.body.paymentMethod) return next(new AppError(400, "Nothing to update"));
+
+      const allowedUpdates = ["shippingAddress", "paymentMethod"];
+
+      allowedUpdates.forEach((field) => {
+        if (req.body[field]) order[field] = req.body[field];
+      });
+
+      await order.save();
+      return sendResponse(200, order, res, {}, `${Model.modelName} updated successfully!`);
+    }
     const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
       runValidators: true,
       new: true,
     });
     if (!doc) return next(new AppError(404, `No ${Model.modelName} found with this ID.`));
 
-    sendResponse(200, doc, res, `${Model.modelName} updated successfully!`);
+    sendResponse(200, doc, res, {}, `${Model.modelName} updated successfully!`);
   });
 
 exports.deleteOne = (Model, options) =>
@@ -123,14 +140,14 @@ exports.deleteOne = (Model, options) =>
       cart.items.pull(item.id);
       await cart.save();
 
-      return sendResponse(200, cart, res, `Cart item deleted successfully`);
+      return sendResponse(200, cart, res, {}, `Cart item deleted successfully`);
     }
 
     const doc = await Model.findByIdAndDelete(req.params.id);
 
     if (!doc) return next(new AppError(404, `no ${Model.modelName} found with this ID.`));
 
-    sendResponse(204, null, res);
+    sendResponse(204, null, res, {});
   });
 
 exports.deleteAll = (Model, options) =>
@@ -140,14 +157,14 @@ exports.deleteAll = (Model, options) =>
       if (!cart) return next(new AppError(404, "Cart not found"));
 
       await Model.findByIdAndDelete(cart._id);
-      return sendResponse(204, null, res, "Cart deleted successfully");
+      return sendResponse(204, null, res, {}, "Cart deleted successfully");
     }
 
     if (req.params.bookId) {
       await mongoose.model("Review").deleteMany({ book: req.params.bookId });
-      return sendResponse(204, null, res, "All reviews for this book deleted");
+      return sendResponse(204, null, res, {}, "All reviews for this book deleted");
     }
 
     await Model.deleteMany();
-    sendResponse(204, null, res, `${Model.modelName}s deleted successfully`);
+    sendResponse(204, null, res, {}, `${Model.modelName}s deleted successfully`);
   });

@@ -1,10 +1,12 @@
+// routes/adminRoutes.js
+
 const router = require("express").Router();
 const { protect, restrictTo } = require("./../controllers/authController");
 const bookController = require("./../controllers/bookController");
 const userController = require("./../controllers/userController");
 const cartController = require("./../controllers/cartController");
 const reviewController = require("./../controllers/reviewController");
-
+const orderController = require("./../controllers/orderController");
 router.use(protect, restrictTo("admin"));
 
 // ===== Books =====
@@ -30,4 +32,8 @@ router.route("/books/:bookId/reviews").get(reviewController.getAllReviews).delet
 
 router.route("/reviews/:id").get(reviewController.getReview).patch(reviewController.updateReview).delete(reviewController.deleteReview);
 
+// ===== Orders =====
+
+router.route("/orders").get(orderController.getAllOrders).delete(orderController.deleteAllOrders);
+router.route("/orders/:id").patch(orderController.updateOrderStatus).delete(orderController.deleteOrder);
 module.exports = router;

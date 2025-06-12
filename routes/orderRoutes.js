@@ -1,18 +1,17 @@
 // routes/orderRoutes.js
 const router = require("express").Router();
-const orderController = require("../controllers/orderController");
+const controllers = require("../controllers/orderController");
 const { protect, restrictTo } = require("../controllers/authController");
 
-router.use(protect); // لازم المستخدم يكون مسجّل دخول
+router.get("/success", controllers.confirmPayment);
+router.use(protect);
+router.get("/checkout-session/:orderId", controllers.getCheckoutSession);
 
-router.route("/").get(restrictTo("admin"), orderController.getAllOrders).post(orderController.createOrder);
+router.post("/checkout", controllers.createOrder);
+router.get("/my-orders", controllers.getMyOrders);
 
-router.route("/my-orders").get(orderController.getMyOrders); // كل مستخدم يشوف طلباته فقط
+router.patch("/:id/cancel", controllers.cancelMyOrder);
 
-router
-  .route("/:id")
-  .get(orderController.getOrder)
-  .patch(restrictTo("admin"), orderController.updateOrderStatus) // تغيير الحالة (شحن، تم التسليم)
-  .delete(restrictTo("admin"), orderController.deleteOrder);
+router.route("/:id").get(controllers.getOrder).patch(controllers.updateMyOrder);
 
 module.exports = router;

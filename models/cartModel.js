@@ -60,7 +60,7 @@ cartSchema.pre("save", async function (next) {
   next();
 });
 
-cartSchema.post(/^findOneAnd/, async function (doc) {
+cartSchema.post("findOneAndUpdate", async function (doc) {
   if (!doc) return;
   let total = 0;
   for (let item of doc.items) {

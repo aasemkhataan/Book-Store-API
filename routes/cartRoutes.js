@@ -1,4 +1,4 @@
-const router = require("express").Router();
+const router = require("express").Router({ mergeParams: true });
 const controllers = require("../controllers/cartController");
 const { protect, restrictTo } = require("../controllers/authController");
 
