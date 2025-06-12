@@ -22,6 +22,8 @@ exports.fetchBookData = catchAsync(async (req, res, next) => {
 
 exports.getAllBooks = factory.getAll(Book);
 exports.getBook = factory.getOne(Book, { path: "reviews" });
+
+// admin
 exports.createBook = factory.createOne(Book);
 exports.updateBook = factory.updateOne(Book);
 exports.deleteBook = factory.deleteOne(Book);

@@ -8,7 +8,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.getMyOrders = factory.getAll(Order, { filterByUser: true });
 exports.getOrder = factory.getOne(Order, { path: "items.book", select: "title priceAtPurchase quantity" });
-exports.updateMyOrder = factory.updateOne(Order);
+exports.updateMyOrder = factory.updateOne(Order, { orderLogic: true });
 
 exports.createOrder = catchAsync(async (req, res, next) => {
   if (!req.body.shippingAddress) return next(new AppError(400, "please provide your shipping address"));
@@ -97,7 +97,7 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
 exports.getAllOrders = factory.getAll(Order);
 exports.updateOrderStatus = catchAsync(async (req, res, next) => {
   const { status } = req.body;
-  if (!status) return next(new AppError(400, "please Provie the current Status"));
+  if (!status) return next(new AppError(400, "please Provide the current Status"));
 
   const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true, runValidators: true });
 

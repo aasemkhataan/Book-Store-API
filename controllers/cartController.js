@@ -21,4 +21,4 @@ exports.getMyCart = factory.getAll(Cart, { filterByUser: true });
 exports.addToCart = factory.createOne(Cart, { cartLogic: true });
 exports.updateCartItem = factory.updateOne(Cart, { cartLogic: true });
 exports.deleteCartItem = factory.deleteOne(Cart, { cartLogic: true });
-(exports.emptyCart = factory.deleteAll(Cart)), { cartLogic: true };
+exports.emptyCart = factory.deleteAll(Cart, { cartLogic: true });
