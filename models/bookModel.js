@@ -7,7 +7,7 @@ const bookSchema = new mongoose.Schema(
       required: [true, "a book must have a title"],
     },
     author: {
-      type: Array,
+      type: [String],
       required: [true, "a book must have an author"],
     },
     pageCount: {
