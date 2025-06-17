@@ -1,1 +1,1 @@
-{ "tabWidth": 2, "useTabs": false, "printWidth": 180 }
+{ "tabWidth": 2, "useTabs": false, "trailingComma": "all", "printWidth": 180, "bracketSpacing": true }

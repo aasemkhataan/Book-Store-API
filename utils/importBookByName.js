@@ -16,7 +16,7 @@ function scoreBookData(info) {
 
 async function getTopScoredBook(title, author) {
   const query = author ? `intitle:${title}+inauthor:${author}` : `intitle:${title}`;
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${query}&key=AIzaSyAW1_3VsB5f5jtTglakcyX5p5Btz5KvwxA`;
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${query}&key=${process.env.GOOGLE_BOOKS_API_KEY}`;
   const res = await axios.get(url);
   const books = res.data.items || [];
   books.forEach((book) => {
